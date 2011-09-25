@@ -21,3 +21,7 @@ env.Library('lib/ql_extensions/ql_extensions',
 env.Program('bin/mcmc_estimation',
             'app/mcmc_estimation/mcmc_estimation.cpp',
             CPPPATH = CPPPATH + ['app/mcmc_estimation'])
+
+env.Program('bin/mc_simulation',
+            'app/mc_simulation/mc_simulation.cpp',
+            CPPPATH = CPPPATH + ['app/mc_simulation'])

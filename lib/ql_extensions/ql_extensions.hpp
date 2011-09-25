@@ -4,6 +4,7 @@
 #include "algorithm/all.hpp"
 #include "math/all.hpp"
 #include "mcmc/all.hpp"
+#include "monte_carlo/all.hpp"
 #include "utils/all.hpp"
 
 #endif
