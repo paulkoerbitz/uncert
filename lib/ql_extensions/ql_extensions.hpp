@@ -2,6 +2,7 @@
 #define ql_extensions_hpp__
 
 #include "algorithm/all.hpp"
+#include "math/all.hpp"
 #include "mcmc/all.hpp"
 #include "utils/all.hpp"
 
