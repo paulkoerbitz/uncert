@@ -18,6 +18,7 @@ tags
 data/
 *.tex
 results/
+conf/
 bin/*
 lib/FLENS-lite
 lib/ool-0.2.0
