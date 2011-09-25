@@ -20,9 +20,8 @@ class Dynamics : public TriadicFunction<Assets ,const Variates&, const Assets&, 
 
 class RnBSVasicekDynamics : public Dynamics {
   public:
-    RnBSVasicekDynamics(const BlackScholesVasicek_MCMC_parameters *pp) 
-      : mu_(pp->drift()), s_(pp->vola()), k_(pp->ir_speed()),
-        t_(pp->ir_mean()), sr_(pp->ir_vola()), rho_(pp->correlation()),
+    RnBSVasicekDynamics(const std::vector<double>& p) 
+      : mu_(p[0]), s_(p[1]), k_(p[2]), t_(p[3]), sr_(p[4]), rho_(p[5]),
         rhoComplement_(std::sqrt(1.0-rho_*rho_)), dt_(0.0/0.0) 
     {}
     
@@ -64,8 +63,8 @@ class RnBSVasicekDynamics : public Dynamics {
 
 class RwBSVasicekDynamics : public RnBSVasicekDynamics {
   public:
-    RwBSVasicekDynamics(const BlackScholesVasicek_MCMC_parameters *pp) 
-        : RnBSVasicekDynamics(pp) {}
+    RwBSVasicekDynamics(const std::vector<double>& p) 
+        : RnBSVasicekDynamics(p) {}
   protected:
     virtual double drift(double intR, double dt) const {
         return mu_*dt;
@@ -74,10 +73,9 @@ class RwBSVasicekDynamics : public RnBSVasicekDynamics {
 
 class RnCevCklsDynamics : public Dynamics {
   public:
-    RnCevCklsDynamics(const CEV_CKLS_MCMC_parameters *pp)
-      : mu_(pp->drift()),  s_(pp->vola()), a_(pp->vola_exp()),
-        k_(pp->ir_speed()), t_(pp->ir_mean()), sr_(pp->ir_vola()),
-        xi_(pp->ir_exp()), rho_(pp->correlation()), 
+    RnCevCklsDynamics(const std::vector<double>& p)
+      : mu_(p[0]),  s_(p[1]), a_(p[2]), k_(p[3]), t_(p[4]), sr_(p[5]),
+        xi_(p[6]), rho_(p[7]), 
         rhoComplement_(std::sqrt(1.0 - rho_*rho_))
     {}
     
@@ -104,8 +102,8 @@ class RnCevCklsDynamics : public Dynamics {
 
 class RwCevCklsDynamics : public RnCevCklsDynamics {
   public:
-    RwCevCklsDynamics(const CEV_CKLS_MCMC_parameters *pp)
-        : RnCevCklsDynamics(pp) {}
+    RwCevCklsDynamics(const std::vector<double>& p)
+        : RnCevCklsDynamics(p) {}
   protected:
     virtual double drift(double r) const {
         return mu_; // objective drift
@@ -118,42 +116,26 @@ class RwCevCklsDynamics : public RnCevCklsDynamics {
 typedef boost::function<
     Assets (const Variates&, const Assets&, double)> ModelDynamics;
 
-ModelDynamics makeRealWorldDynamics(const MCMC_parameters *p) {
-    // Work in reverse of the MCMC_parameters hierachy to avoid 
-    // getting a legal cast to a super class
-    // *** THIS IS EVIL ***
-    {
-    const CEV_CKLS_MCMC_parameters *pp =
-        dynamic_cast<const CEV_CKLS_MCMC_parameters*>(p);
-    if (pp != 0) 
-        return ModelDynamics(RwCevCklsDynamics(pp));
-    } {
-    const BlackScholesVasicek_MCMC_parameters *pp =
-        dynamic_cast<const BlackScholesVasicek_MCMC_parameters*>(p);
-    if (pp != 0) 
-        return ModelDynamics(RwBSVasicekDynamics(pp));
-    }
-   
-    QL_FAIL("makeRealWorldDynamics: Illegal parameter type passed");
+ModelDynamics makeRealWorldDynamics(const std::vector<double>& p,
+										const std::string& model_name) {
+	if (model_name == "CevCkls")  {
+        return ModelDynamics(RwCevCklsDynamics(p));
+	} else if (model_name == "BS_Vas") {
+        return ModelDynamics(RwBSVasicekDynamics(p));
+    } else {
+		QL_FAIL("makeRealWorldDynamics: Illegal model_name: " + model_name);
+	}
 }
 
-ModelDynamics makeRiskNeutralDynamics(const MCMC_parameters *p) {
-    // Work in reverse of the MCMC_parameters hierachy to avoid 
-    // getting a legal cast to a super class
-    // *** THIS IS EVIL ***
-    {
-    const CEV_CKLS_MCMC_parameters *pp =
-        dynamic_cast<const CEV_CKLS_MCMC_parameters*>(p);
-    if (pp != 0) 
-        return ModelDynamics(RnCevCklsDynamics(pp));
-    } {
-    const BlackScholesVasicek_MCMC_parameters *pp =
-        dynamic_cast<const BlackScholesVasicek_MCMC_parameters*>(p);
-    if (pp != 0) 
-        return ModelDynamics(RnBSVasicekDynamics(pp));
-    }
-   
-    QL_FAIL("makeRealWorldDynamics: Illegal parameter type passed");
+ModelDynamics makeRiskNeutralDynamics(const std::vector<double>& p,
+									  const std::string& model_name) {
+	if (model_name == "CevCkls")  {
+        return ModelDynamics(RnCevCklsDynamics(p));
+    } else if (model_name == "BS_Vas") {
+        return ModelDynamics(RnBSVasicekDynamics(p));
+    } else {
+		QL_FAIL("makeRealWorldDynamics: Illegal model_name: " + model_name);
+	}
 }
 
 };

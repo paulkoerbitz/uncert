@@ -3,10 +3,13 @@
 
 #include "../instruments/termfixinsurance/valuevector.hpp"
 
+#include "pricingmodel.hpp"
+#include "mcmodel.hpp"
 #include "path.hpp"
 #include "assets.hpp"
 #include "variates.hpp"
 #include "dynamics.hpp"
+#include "discountbond.hpp"
 
 namespace QuantLibExt {
 

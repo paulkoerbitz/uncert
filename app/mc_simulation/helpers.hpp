@@ -1,39 +1,27 @@
-#ifndef funcMC__utils__hpp__
-#define funcMC__utils__hpp__ 
-
 #include <fstream>
+#include <vector>
+#include <cstdlib>
+#include <algorithm>
+#include <boost/tokenizer.hpp>
 #include <boost/shared_ptr.hpp>
 
-typedef boost::shared_ptr<MCMC_parameters> Param_ptr;
-
-template <class ParamType>
-std::vector<Param_ptr> parseParameters(std::string filename)
-{
-    std::ifstream infile;
-    infile.open(filename.c_str());
-    QL_REQUIRE(infile.is_open(), "Can't open file " + filename);
-
-    CSVParser csvparser;
-    std::string sLine;
-    std::vector<Param_ptr> Parameters;
-    
-    getline(infile,sLine); // throw away the first line - contains header
-
-    while (!infile.eof()) {
-        getline(infile,sLine);
-        if (sLine == "")
-            continue;
-
-        Param_ptr p(new ParamType());
-        csvparser << sLine;
-
-        for (typename ParamType::iterator it = p->begin(); 
-                                        it != p->end(); ++it)
-            csvparser >> *it;
-
-        Parameters.push_back(p);
-    }
-    return Parameters;
+double string_to_double(const std::string& s) {
+	return atof(s.c_str());
 }
 
-#endif
+std::vector<std::vector<double> > parseParameters(std::string filename)
+{
+    std::vector<std::vector<double> > parameters;
+	std::ifstream infile(filename.c_str());
+    QL_REQUIRE(infile.is_open(), "Can't open file " + filename);
+	std::string line;
+
+	while(std::getline(infile, line)) {
+		std::vector<double> params;
+		boost::tokenizer<boost::escaped_list_separator<char> > tok(line);
+		std::transform(tok.begin(), tok.end(), std::back_inserter(params),
+					   string_to_double);
+		parameters.push_back(params);
+	}
+    return parameters;
+}

@@ -8,7 +8,7 @@
 
 #include "../instruments/termfixinsurance/valuevector.hpp"
 
-namespace FuncMC {
+namespace QuantLibExt {
 
 struct PathDebugInfo {
   PathDebugInfo(double tt, double SS, double rr, double iintR, double LL, double ZZCB

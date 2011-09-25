@@ -1,6 +1,9 @@
 #ifndef ql_extensions__monte_carlo__deltas__hpp__
 #define ql_extensions__monte_carlo__deltas__hpp__
 
+#include <boost/function.hpp>
+
+#include "../instruments/termfixinsurance/valuevector.hpp"
 
 #include "path.hpp"
 #include "assets.hpp"

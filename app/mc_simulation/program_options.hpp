@@ -38,21 +38,30 @@ class ProgramOptions {
         didYouParseYet_ = true;
     }
 
-    boost::shared_ptr<MCMC_parameters> getRiskNeutralParameters() const {
+    std::vector<double> getRiskNeutralParameters() const {
         checkParsed();
-        boost::shared_ptr<MCMC_parameters> p_RnParas;
-        if (model_ == "BSVasicek") 
-            p_RnParas.reset(new BlackScholesVasicek_MCMC_parameters(
-                0.0,rnStockVol_,rnIrSpeed_
-               ,rnIrLevel_,rnIrVol_,rnCorrelation_));
-        else if (model_ == "CEV_CKLS")
-            p_RnParas.reset(new CEV_CKLS_MCMC_parameters(
-                0.0,rnStockVol_,rnStockExp_,rnIrSpeed_
-               ,rnIrLevel_,rnIrVol_,rnIrExp_,rnCorrelation_));
-        else 
+        std::vector<double> rnParas;
+        if (model_ == "BSVasicek") {
+			rnParas.push_back(0.0);
+			rnParas.push_back(rnStockVol_);
+			rnParas.push_back(rnIrSpeed_);
+            rnParas.push_back(rnIrLevel_);
+			rnParas.push_back(rnIrVol_);
+			rnParas.push_back(rnCorrelation_);
+		} else if (model_ == "CevCkls") {
+			rnParas.push_back(0.0);
+			rnParas.push_back(rnStockVol_);
+			rnParas.push_back(rnStockExp_);
+			rnParas.push_back(rnIrSpeed_);
+            rnParas.push_back(rnIrLevel_);
+			rnParas.push_back(rnIrVol_);
+			rnParas.push_back(rnIrExp_);
+			rnParas.push_back(rnCorrelation_);
+		} else {
             QL_FAIL("ProgramOptions: Don't know how to create parameters"
                    + std::string(" for model ") + model_);
-        return p_RnParas;
+		}
+        return rnParas;
     }
 
     std::string model() const {

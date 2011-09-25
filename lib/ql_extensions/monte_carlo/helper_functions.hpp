@@ -46,20 +46,21 @@ ValueVector simpleMC(unsigned nSamples
 }
 
 Path<Assets> generateRealWorldAssetPath(
-         boost::function<double ()>& rndNumberGenerator
-        ,AssetPathTraits assetPathTraits
-        ,boost::shared_ptr<MCMC_parameters> p)
+         boost::function<double ()>& rndNumberGenerator,
+		 AssetPathTraits assetPathTraits,
+		 const std::vector<double>& p,
+		 const std::string& model_name)
 {
     boost::function<Assets (const Variates&,const Assets&, double)>
-            realWorldDynamics = makeRealWorldDynamics(&(*p));
+		realWorldDynamics = makeRealWorldDynamics(p, model_name);
 
-    Path<Variates> variates = makeVariates(assetPathTraits.dt
-                                          ,assetPathTraits.T
-                                          ,assetPathTraits.t0
-                                          ,rndNumberGenerator);
+    Path<Variates> variates = makeVariates(assetPathTraits.dt,
+										   assetPathTraits.T,
+										   assetPathTraits.t0,
+										   rndNumberGenerator);
 
-    return makePathFromVariates(variates,assetPathTraits.initialAssetValues
-                               ,realWorldDynamics);
+    return makePathFromVariates(variates,assetPathTraits.initialAssetValues,
+								realWorldDynamics);
 }
 
 
@@ -68,24 +69,26 @@ typedef boost::function<ValueVector (const Path<Assets>&
         ProfitAndLossComputer;
 
 ValueVector singleProfitAndLossSimulation(
-        const boost::shared_ptr<MCMC_parameters>& p
-       ,unsigned seed
-       ,const AssetPathTraits& assetPathTraits
-       ,const ContractTraits& contractTraits
-       ,const ProfitAndLossComputer& computeProfitAndLoss)
+		const std::vector<double>& p,
+		const std::string& model_name,
+		unsigned seed,
+		const AssetPathTraits& assetPathTraits,
+		const ContractTraits& contractTraits,
+        const ProfitAndLossComputer& computeProfitAndLoss)
 {
     boost::function<double ()> rndNumberGenerator 
         = NormalRandomNumberGenerator(seed);
 
     Path<Assets> assetPath 
-        = generateRealWorldAssetPath(rndNumberGenerator ,assetPathTraits ,p);
+        = generateRealWorldAssetPath(rndNumberGenerator, assetPathTraits,
+									 p, model_name);
 
     Path<ContractStates> contractStatePath 
-        = makeContractStatePath(assetPath,contractTraits);
+        = makeContractStatePath(assetPath, contractTraits);
     Path<ValueVector> contractPayoffs
         = payoffPathFromContractStates(contractStatePath);
 
-    return computeProfitAndLoss(assetPath,contractStatePath,contractPayoffs);
+    return computeProfitAndLoss(assetPath, contractStatePath, contractPayoffs);
 }
 
 }

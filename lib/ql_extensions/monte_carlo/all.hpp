@@ -1,5 +1,6 @@
 #include "assets.hpp"
 #include "deltas.hpp"
+#include "discountbond.hpp"
 #include "dynamics.hpp"
 #include "function_types.hpp"
 #include "helper_functions.hpp"

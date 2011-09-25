@@ -8,7 +8,6 @@
 #include "helpers.hpp"
 
 namespace qe=QuantLibExt;
-namespace fmc=FuncMC;
  
 void writeResults(const std::vector<qe::ValueVector>& results,
                   const std::string& outfilename) 
@@ -23,7 +22,7 @@ void writeResults(const std::vector<qe::ValueVector>& results,
     out.close();
 }
 
-void expandOrCropParameters(std::vector<Param_ptr>& parameters, unsigned n) 
+void expandOrCropParameters(std::vector<std::vector<double> >& parameters, unsigned n) 
 {
     if (parameters.size() == n) 
         return;
@@ -32,7 +31,7 @@ void expandOrCropParameters(std::vector<Param_ptr>& parameters, unsigned n)
     else {
         QL_REQUIRE(((size_t) n) % parameters.size() == 0,
             "expandOrCropParameters: n not divisible by parameters.size()");
-        std::vector<Param_ptr> new_parameters(n);
+        std::vector<std::vector<double> > new_parameters(n);
         unsigned quotient = n / parameters.size();
         for (unsigned i=0; i<new_parameters.size(); ++i)
             new_parameters[i] = parameters[i/quotient];
@@ -72,16 +71,10 @@ qe::ProfitAndLossComputer setupProfitAndLossComputingFunction(
     return computeProfitAndLoss;
 }
 
-std::vector<Param_ptr> setupParameters(const ProgramOptions& options)
+std::vector<std::vector<double> > setupParameters(const ProgramOptions& options)
 {
-    std::vector<Param_ptr> parameters;
-    if (options.model() == "BSVasicek") {
-        parameters = parseParameters<BlackScholesVasicek_MCMC_parameters>(
-                options.MCMC_parameter_filename());
-    } else if (options.model() == "CEV_CKLS") {
-        parameters = parseParameters<CEV_CKLS_MCMC_parameters>(
-                options.MCMC_parameter_filename());
-    }
+    std::vector<std::vector<double> > parameters
+		= parseParameters(options.MCMC_parameter_filename());
     expandOrCropParameters(parameters, options.getNumberOfPaths());
     return parameters;
 }
@@ -100,10 +93,11 @@ int main(int ac, char** av)
     options.parseCommandline(ac,av);
     options.debugPrint();
 
-    std::vector<Param_ptr> parameters = setupParameters(options);
+    std::vector<std::vector<double> > parameters = setupParameters(options);
 
-    qe::ModelDynamics riskNeutralDynamics = qe::makeRiskNeutralDynamics(
-                &(*options.getRiskNeutralParameters()));
+    qe::ModelDynamics riskNeutralDynamics
+		= qe::makeRiskNeutralDynamics(options.getRiskNeutralParameters(),
+									  options.model());
 
     qe::ValueVector initialValue = simpleMC(options.nPathsInitialMc(),
                                             options.getSeed(),
@@ -118,7 +112,7 @@ int main(int ac, char** av)
     std::vector<unsigned> seeds = setupSeeds(options);
 
     std::transform(parameters.begin(),parameters.end(),seeds.begin(),results.begin(),
-                   boost::bind(qe::singleProfitAndLossSimulation,_1,_2,
+                   boost::bind(qe::singleProfitAndLossSimulation,_1,options.model(),_2,
                                options.getAssetPathTraits(),options.getContractTraits(),
                                computeProfitAndLoss));
 
