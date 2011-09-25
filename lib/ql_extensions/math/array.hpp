@@ -17,6 +17,8 @@
 
 namespace QuantLibExt {
 
+namespace ql=QuantLib;
+
 template <class T=double>
 class Array {
   public:
